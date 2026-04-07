@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sky Building Pixel Art Generator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a2e;color:#eee;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.c{max-width:1100px;margin:0 auto;padding:20px 16px 80px}
+h1{text-align:center;font-size:clamp(18px,4vw,30px);color:#e94560;margin:16px 0 4px;letter-spacing:1px}
+.sub{text-align:center;font-size:13px;color:#8892b0;margin-bottom:24px}
+
+.uz{border:2px dashed #233554;border-radius:10px;padding:40px 20px;text-align:center;cursor:pointer;background:rgba(22,33,62,.4);margin-bottom:20px;transition:.2s}
+.uz:hover{border-color:#e94560;background:rgba(233,69,96,.04)}
+.uz .ic{font-size:36px;display:block;margin-bottom:8px}
+.uz .lb{font-size:13px;color:#8892b0}.uz .lb b{color:#e94560}
+
+.ctrl{display:none;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:20px;padding:16px;background:#16213e;border-radius:8px;border:1px solid #233554}
+.cg{display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px}
+.cg label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:#8892b0;font-weight:600}
+.cg select{background:#1a1a2e;color:#eee;border:1px solid #233554;border-radius:5px;padding:7px 8px;font-size:13px;outline:none;font-family:inherit}
+input[type=range]{-webkit-appearance:none;height:5px;border-radius:3px;background:#233554;cursor:pointer;margin-top:4px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#e94560;cursor:pointer}
+.sd{font-size:17px;color:#ff6b6b;min-width:60px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+
+.btn{font-size:12px;padding:9px 18px;border:none;border-radius:5px;cursor:pointer;transition:.2s;font-weight:600;font-family:inherit}
+.bp{background:#e94560;color:#fff}.bp:hover{background:#ff6b6b}
+.bp:disabled{opacity:.4;cursor:not-allowed}
+.bs{background:#0f3460;color:#eee;border:1px solid #233554}.bs:hover{border-color:#e94560}
+
+.res{display:none;margin-top:8px}.res.vis{display:block}
+.rh{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.rh h2{font-size:15px;color:#e94560}
+.ra{display:flex;gap:6px;flex-wrap:wrap}
+.ca{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
+.cp{background:#16213e;border:1px solid #233554;border-radius:8px;padding:14px;text-align:center}
+.cp h3{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:#8892b0;margin-bottom:10px;font-weight:600}
+.cp canvas{image-rendering:pixelated;border-radius:3px;cursor:crosshair}
+
+.tt{position:fixed;background:rgba(10,10,20,.95);border:1px solid #e94560;border-radius:6px;padding:8px 12px;font-size:12px;pointer-events:none;z-index:100;display:none;min-width:170px;box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.tt .sw{display:inline-block;width:16px;height:16px;border-radius:3px;vertical-align:middle;margin-right:6px;border:1px solid rgba(255,255,255,.2)}
+.tt .nm{font-weight:600}.tt .dt{color:#8892b0;font-size:11px;margin-top:3px}
+
+.ps{background:#16213e;border:1px solid #233554;border-radius:8px;padding:16px;margin-top:20px}
+.ps h3{font-size:14px;color:#e94560;margin-bottom:10px}
+.pg{display:flex;flex-wrap:wrap;gap:3px}
+.pchip{width:26px;height:26px;border-radius:3px;border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:transform .15s}
+.pchip:hover{transform:scale(1.4);z-index:10;border-color:#fff;box-shadow:0 4px 10px rgba(0,0,0,.5)}
+
+/* BUILD GUIDE */
+.guide{display:none;margin-top:28px;background:#16213e;border:1px solid #233554;border-radius:10px;overflow:hidden}
+.guide.vis{display:block}
+.guide-head{padding:16px 18px 12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-bottom:1px solid #233554}
+.guide-head h2{font-size:16px;color:#e94560}
+.guide-progress{font-size:12px;color:#8892b0}.guide-progress b{color:#ff6b6b}
+
+.guide-overview{padding:16px;text-align:center;border-bottom:1px solid #233554;background:rgba(0,0,0,.15)}
+.guide-overview canvas{image-rendering:pixelated;border-radius:4px}
+
+.guide-nav{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px;border-bottom:1px solid #233554;background:rgba(0,0,0,.1)}
+.nav-btn{width:44px;height:44px;border-radius:8px;border:1px solid #233554;background:#0f3460;color:#eee;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.nav-btn:hover{border-color:#e94560;background:#16213e}
+.nav-btn:disabled{opacity:.3;cursor:not-allowed}
+.nav-info{text-align:center;min-width:120px}
+.nav-layer{font-size:22px;font-weight:700;color:#ff6b6b;font-variant-numeric:tabular-nums}
+.nav-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:#8892b0;margin-top:2px}
+
+/* Split controls */
+.split-bar{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #233554;background:rgba(0,0,0,.08);flex-wrap:wrap}
+.split-label{font-size:10px;color:#8892b0;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-right:2px}
+.split-select{background:#1a1a2e;color:#eee;border:1px solid #233554;border-radius:5px;padding:6px 8px;font-size:12px;outline:none;font-family:inherit;margin-right:8px}
+.split-select:focus{border-color:#e94560}
+.section-btns{display:flex;gap:4px;flex-wrap:wrap}
+.sec-btn{font-size:11px;padding:5px 12px;border:1px solid #233554;border-radius:5px;background:transparent;color:#8892b0;cursor:pointer;font-weight:600;font-family:inherit;transition:.15s}
+.sec-btn:hover{border-color:#e94560;color:#eee}
+.sec-btn.active{background:#e94560;border-color:#e94560;color:#fff}
+.split-info{font-size:10px;color:#556;margin-left:4px;flex-basis:100%;margin-top:4px}
+
+/* Steps */
+.guide-steps{padding:16px;border-bottom:1px solid #233554}
+.guide-steps h3{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:#8892b0;margin-bottom:12px;font-weight:600}
+.steps-list{display:flex;flex-direction:column;gap:4px}
+.step{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;background:rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.04);transition:.15s}
+.step:hover{background:rgba(0,0,0,.25);border-color:rgba(255,255,255,.1)}
+.step-num{font-size:11px;color:#556;min-width:20px;font-variant-numeric:tabular-nums}
+.step-swatch{width:28px;height:28px;border-radius:4px;border:1px solid rgba(255,255,255,.15);flex-shrink:0}
+.step-info{flex:1;min-width:0}
+.step-pos{font-size:13px;font-weight:700;color:#ff6b6b}
+.step-name{font-size:10px;color:#8892b0;margin-top:1px}
+.step-count{font-size:16px;font-weight:700;color:#eee;min-width:50px;text-align:right;font-variant-numeric:tabular-nums}
+.step-count span{font-size:11px;color:#8892b0;font-weight:400}
+
+/* Picker */
+.picker-ref{padding:14px 18px;border-top:1px solid #233554;background:rgba(0,0,0,.05)}
+.picker-ref h3{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:#8892b0;margin-bottom:10px;font-weight:600}
+.picker-grid{display:inline-grid;grid-template-columns:repeat(6,34px);gap:2px}
+.picker-cell{width:34px;height:34px;border-radius:3px;border:2px solid transparent;position:relative;transition:.15s;cursor:default}
+.picker-cell.active{border-color:#fff;box-shadow:0 0 10px rgba(255,255,255,.35);z-index:2;transform:scale(1.12)}
+.picker-cell.na{background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;font-size:7px;color:#556}
+.picker-rows{display:flex;flex-direction:column;gap:2px}
+.picker-rlabel{height:34px;display:flex;align-items:center;font-size:8px;color:#556;width:18px;justify-content:flex-end;padding-right:4px}
+.picker-cols{display:flex;gap:2px;margin-bottom:4px}
+.picker-clabel{width:34px;text-align:center;font-size:8px;color:#556}
+
+/* Share */
+.share-banner{display:none;margin-top:20px;padding:14px 18px;background:#16213e;border:1px solid #233554;border-radius:8px}
+.share-banner.vis{display:block}
+.share-banner h3{font-size:12px;color:#e94560;margin-bottom:8px}
+.share-url{display:flex;gap:6px}
+.share-url input{flex:1;background:#1a1a2e;color:#eee;border:1px solid #233554;border-radius:5px;padding:8px 10px;font-family:monospace;font-size:11px;outline:none}
+.share-url input:focus{border-color:#e94560}
+
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;justify-content:center;align-items:center}
+.mo.vis{display:flex}
+.md{background:#16213e;border:1px solid #233554;border-radius:10px;padding:20px;max-width:560px;width:90%;max-height:80vh;overflow-y:auto}
+.md h3{font-size:15px;color:#e94560;margin-bottom:10px}
+.md textarea{width:100%;min-height:180px;background:#1a1a2e;color:#eee;border:1px solid #233554;border-radius:5px;padding:10px;font-family:monospace;font-size:11px;resize:vertical;outline:none}
+.ma{display:flex;gap:6px;margin-top:10px;justify-content:flex-end}
+.hid{display:none}
+
+.loaded-banner{display:none;padding:14px 18px;background:rgba(233,69,96,.08);border:1px solid rgba(233,69,96,.25);border-radius:8px;margin-bottom:20px;text-align:center;font-size:13px;color:#ff6b6b}
+.loaded-banner.vis{display:block}
+
+@media(max-width:600px){
+  .ctrl{flex-direction:column}
+  .ca{flex-direction:column;align-items:center}
+  .picker-grid{grid-template-columns:repeat(6,30px);gap:1px}
+  .picker-cell{width:30px;height:30px}
+  .picker-rlabel{height:30px}.picker-clabel{width:30px}
+}
+</style>
+</head>
+<body>
+<div class="c">
+  <h1>&#x1F3D7;&#xFE0F; Sky Building Pixel Art Generator</h1>
+  <p class="sub">Upload → convert → build layer by layer. Split the work with friends using sections & share links.</p>
+
+  <div class="loaded-banner" id="loaded-banner"></div>
+
+  <div class="uz" id="uz"><span class="ic">&#x1F5BC;&#xFE0F;</span><div class="lb">Drop image here or <b>tap to browse</b></div></div>
+  <input type="file" id="fi" accept="image/*" class="hid">
+
+  <div class="ctrl" id="ctrl">
+    <div class="cg"><label>Width (px)</label><input type="range" id="ss" min="8" max="128" value="32"></div>
+    <div class="cg" style="flex:0;min-width:auto"><label>Size</label><div class="sd" id="sd">32×32</div></div>
+    <div class="cg" style="flex:0;min-width:auto"><label>Aspect</label><select id="am"><option value="square">Square</option><option value="keep" selected>Keep Ratio</option></select></div>
+    <div class="cg" style="flex:0;min-width:auto"><label>&nbsp;</label><button class="btn bp" id="cb">Convert</button></div>
+  </div>
+
+  <div class="res" id="res">
+    <div class="rh"><h2>&#x2705; Result</h2><div class="ra">
+      <button class="btn bs" id="egb">View Full Guide</button>
+      <button class="btn bs" id="dlb">Save PNG</button>
+      <button class="btn bp" id="share-btn">&#x1F517; Share</button>
+    </div></div>
+    <div class="ca">
+      <div class="cp"><h3>Original (scaled)</h3><canvas id="pcan"></canvas></div>
+      <div class="cp"><h3>BrickColor Result</h3><canvas id="rcan"></canvas></div>
+    </div>
+    <div class="ps"><h3>Palette Used</h3><div class="pg" id="pg"></div></div>
+    <div class="share-banner" id="share-banner">
+      <h3>&#x1F517; Share this build</h3>
+      <p style="font-size:11px;color:#8892b0;margin-bottom:8px">Anyone with this link sees the full build guide — no image upload needed.</p>
+      <div class="share-url">
+        <input type="text" id="share-url" readonly>
+        <button class="btn bs" id="share-copy">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide" id="guide">
+    <div class="guide-head">
+      <h2>&#x1F528; Build Guide</h2>
+      <div class="guide-progress">Layer <b id="gp-cur">1</b> of <b id="gp-tot">1</b></div>
+    </div>
+    <div class="guide-overview"><canvas id="gcan"></canvas></div>
+    <div class="guide-nav">
+      <button class="nav-btn" id="nav-first" title="First layer">&#x23EE;</button>
+      <button class="nav-btn" id="nav-prev" title="Previous layer">&#x25C0;</button>
+      <div class="nav-info">
+        <div class="nav-layer" id="nav-num">1</div>
+        <div class="nav-label">Layer (bottom → top)</div>
+      </div>
+      <button class="nav-btn" id="nav-next" title="Next layer">&#x25B6;</button>
+      <button class="nav-btn" id="nav-last" title="Last layer">&#x23ED;</button>
+    </div>
+
+    <div class="split-bar" id="split-bar">
+      <span class="split-label">Split work:</span>
+      <select class="split-select" id="split-count">
+        <option value="1">No split (solo)</option>
+        <option value="2">2 players</option>
+        <option value="3">3 players</option>
+        <option value="4">4 players</option>
+        <option value="5">5 players</option>
+        <option value="6">6 players</option>
+        <option value="7">7 players</option>
+        <option value="8">8 players</option>
+        <option value="9">9 players</option>
+        <option value="10">10 players</option>
+      </select>
+      <div class="section-btns" id="section-btns"></div>
+      <div class="split-info" id="split-info"></div>
+    </div>
+
+    <div class="guide-steps">
+      <h3 id="steps-title">Layer 1</h3>
+      <div class="steps-list" id="steps-list"></div>
+    </div>
+
+    <div class="picker-ref">
+      <h3>In-Game Color Picker — highlighted = needed this section</h3>
+      <div style="padding-left:22px">
+        <div class="picker-cols" id="picker-cols"></div>
+        <div style="display:flex">
+          <div class="picker-rows" id="picker-rows"></div>
+          <div class="picker-grid" id="picker-grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tt" id="tt"><span class="sw" id="ts"></span><span class="nm" id="tn"></span><div class="dt" id="td"></div></div>
+<div class="mo" id="mo"><div class="md"><h3 id="mt">Data</h3><textarea id="mx" readonly></textarea><div class="ma"><button class="btn bs" id="mc">Copy</button><button class="btn bp" id="mcl">Close</button></div></div></div>
+<canvas id="sc" class="hid"></canvas>
+
+<script>
+function srgbToLab(r,g,b){
+  r/=255;g/=255;b/=255;
+  r=r>.04045?Math.pow((r+.055)/1.055,2.4):r/12.92;
+  g=g>.04045?Math.pow((g+.055)/1.055,2.4):g/12.92;
+  b=b>.04045?Math.pow((b+.055)/1.055,2.4):b/12.92;
+  let x=(r*.4124564+g*.3575761+b*.1804375)/.95047;
+  let y=r*.2126729+g*.7151522+b*.0721750;
+  let z=(r*.0193339+g*.1191920+b*.9503041)/1.08883;
+  const f=t=>t>.008856?Math.cbrt(t):7.787*t+16/116;
+  return[116*f(y)-16,500*(f(x)-f(y)),200*(f(y)-f(z))];
+}
+function labDist(a,b){const dL=a[0]-b[0],da=a[1]-b[1],db=a[2]-b[2];return dL*dL+da*da+db*db;}
+
+const BC=[
+  {id:1004,n:"Really red",rgb:[255,0,0],gr:1,gc:1},
+  {id:331,n:"Persimmon",rgb:[255,89,89],gr:1,gc:2},
+  {id:21,n:"Bright red",rgb:[196,40,28],gr:1,gc:3},
+  {id:1007,n:"Dusty Rose",rgb:[163,75,75],gr:1,gc:4},
+  {id:332,n:"Maroon",rgb:[117,0,0],gr:1,gc:5},
+  {id:1032,n:"Hot pink",rgb:[255,0,191],gr:2,gc:1},
+  {id:1016,n:"Pink",rgb:[255,102,204],gr:2,gc:2},
+  {id:1015,n:"Magenta",rgb:[170,0,170],gr:2,gc:3},
+  {id:330,n:"Carnation pink",rgb:[255,152,220],gr:2,gc:4},
+  {id:342,n:"Mauve",rgb:[224,178,208],gr:2,gc:5},
+  {id:321,n:"Lilac",rgb:[167,94,155],gr:2,gc:6},
+  {id:1031,n:"Royal purple",rgb:[98,37,209],gr:3,gc:1},
+  {id:322,n:"Plum",rgb:[123,47,123],gr:3,gc:2},
+  {id:1023,n:"Lavender",rgb:[140,91,159],gr:3,gc:3},
+  {id:316,n:"Eggplant",rgb:[123,0,123],gr:3,gc:4},
+  {id:1026,n:"Pastel violet",rgb:[177,167,255],gr:3,gc:5},
+  {id:1006,n:"Alder",rgb:[180,128,255],gr:3,gc:6},
+  {id:1010,n:"Really blue",rgb:[0,0,255],gr:4,gc:1},
+  {id:1012,n:"Deep blue",rgb:[33,84,185],gr:4,gc:2},
+  {id:308,n:"Dark indigo",rgb:[61,21,133],gr:4,gc:3},
+  {id:303,n:"Dark blue",rgb:[0,16,176],gr:4,gc:4},
+  {id:1011,n:"Navy blue",rgb:[0,32,96],gr:4,gc:5},
+  {id:306,n:"Storm blue",rgb:[51,88,130],gr:4,gc:6},
+  {id:1019,n:"Toothpaste",rgb:[0,255,255],gr:5,gc:1},
+  {id:1018,n:"Teal",rgb:[18,238,212],gr:5,gc:2},
+  {id:107,n:"Bright bluish green",rgb:[0,143,156],gr:5,gc:3},
+  {id:1013,n:"Cyan",rgb:[4,175,236],gr:5,gc:4},
+  {id:11,n:"Pastel Blue",rgb:[128,187,219],gr:5,gc:5},
+  {id:23,n:"Bright blue",rgb:[13,105,172],gr:5,gc:6},
+  {id:1020,n:"Lime green",rgb:[0,255,0],gr:6,gc:1},
+  {id:310,n:"Shamrock",rgb:[91,154,76],gr:6,gc:2},
+  {id:313,n:"Forest green",rgb:[31,128,29],gr:6,gc:3},
+  {id:37,n:"Bright green",rgb:[75,151,75],gr:6,gc:4},
+  {id:1021,n:"Camo",rgb:[58,125,21],gr:6,gc:5},
+  {id:141,n:"Earth green",rgb:[39,70,45],gr:6,gc:6},
+  {id:1009,n:"New Yeller",rgb:[255,255,0],gr:7,gc:1},
+  {id:24,n:"Bright yellow",rgb:[245,205,48],gr:7,gc:2},
+  {id:334,n:"Daisy orange",rgb:[248,217,109],gr:7,gc:3},
+  {id:226,n:"Cool yellow",rgb:[253,234,141],gr:7,gc:4},
+  {id:1029,n:"Pastel yellow",rgb:[255,255,204],gr:7,gc:5},
+  {id:1008,n:"Olive",rgb:[193,190,66],gr:7,gc:6},
+  {id:1005,n:"Deep orange",rgb:[255,176,0],gr:8,gc:1},
+  {id:133,n:"Neon orange",rgb:[213,115,61],gr:8,gc:2},
+  {id:1014,n:"CGA brown",rgb:[170,85,0],gr:8,gc:3},
+  {id:105,n:"Br. yellowish orange",rgb:[226,155,64],gr:8,gc:4},
+  {id:361,n:"Dirt brown",rgb:[86,66,54],gr:8,gc:5},
+  {id:165,n:"Medium stone grey",rgb:[163,162,165],gr:8,gc:6},
+  {id:1003,n:"Really black",rgb:[17,17,17],gr:9,gc:1},
+  {id:199,n:"Dark stone grey",rgb:[99,95,98],gr:9,gc:2},
+  {id:302,n:"Smoky grey",rgb:[91,93,105],gr:9,gc:3},
+  {id:320,n:"Ghost grey",rgb:[202,203,209],gr:9,gc:4},
+  {id:1001,n:"Institutional white",rgb:[248,248,248],gr:9,gc:5},
+];
+BC.forEach(c=>{c.lab=srgbToLab(c.rgb[0],c.rgb[1],c.rgb[2]);});
+const bcIndex=BC.map(c=>c.id);
+
+function gpos(bc){return`R${bc.gr} C${bc.gc}`;}
+function rgbStr(bc){return`rgb(${bc.rgb[0]},${bc.rgb[1]},${bc.rgb[2]})`;}
+function nearest(r,g,b){
+  const lab=srgbToLab(r,g,b);let best=null,bestD=Infinity;
+  for(const c of BC){const d=labDist(lab,c.lab);if(d<bestD){bestD=d;best=c;}}
+  return best;
+}
+function getRuns(cells){
+  const runs=[];let i=0;
+  while(i<cells.length){const bc=cells[i];let count=1;while(i+count<cells.length&&cells[i+count].id===bc.id)count++;runs.push({bc,count,startCol:i+1});i+=count;}
+  return runs;
+}
+
+let img=null,grid=[],gW=0,gH=0,curLayer=0;
+let splitCount=1,activeSection=0; // 0-indexed section
+const $=id=>document.getElementById(id);
+
+// ── Section math ─────────────────────────────────────────────────────
+function getSectionRange(secIdx,total,width){
+  // Evenly divide columns; remainder goes to earlier sections
+  const base=Math.floor(width/total);
+  const extra=width%total;
+  let start=0;
+  for(let i=0;i<secIdx;i++) start+=base+(i<extra?1:0);
+  const len=base+(secIdx<extra?1:0);
+  return{start,len};
+}
+
+// ── Upload ───────────────────────────────────────────────────────────
+$('uz').onclick=()=>$('fi').click();
+$('uz').ondragover=e=>{e.preventDefault();$('uz').style.borderColor='#e94560';};
+$('uz').ondragleave=()=>{$('uz').style.borderColor='#233554';};
+$('uz').ondrop=e=>{e.preventDefault();$('uz').style.borderColor='#233554';if(e.dataTransfer.files.length)load(e.dataTransfer.files[0]);};
+$('fi').onchange=e=>{if(e.target.files.length)load(e.target.files[0]);};
+function load(f){
+  if(!f.type.startsWith('image/'))return;
+  const r=new FileReader();
+  r.onload=e=>{const i=new Image();i.onload=()=>{img=i;$('ctrl').style.display='flex';$('uz').innerHTML=`<span class="ic">&#x2705;</span><div class="lb">Loaded <b>${i.width}×${i.height}</b> — drop another to replace</div>`;upd();};i.src=e.target.result;};
+  r.readAsDataURL(f);
+}
+$('ss').oninput=upd;$('am').onchange=upd;
+function upd(){const w=+$('ss').value;let h=w;if(img&&$('am').value==='keep')h=Math.max(1,Math.round(w*(img.height/img.width)));$('sd').textContent=`${w}×${h}`;}
+
+// ── Convert ──────────────────────────────────────────────────────────
+$('cb').onclick=convert;
+function convert(){
+  if(!img)return;
+  const w=+$('ss').value;let h=w;
+  if($('am').value==='keep')h=Math.max(1,Math.round(w*(img.height/img.width)));
+  gW=w;gH=h;
+  const sc=$('sc'),sC=sc.getContext('2d');
+  sc.width=w;sc.height=h;sC.imageSmoothingEnabled=true;sC.imageSmoothingQuality='medium';
+  sC.drawImage(img,0,0,w,h);const d=sC.getImageData(0,0,w,h).data;
+  grid=[];
+  for(let y=0;y<h;y++){const row=[];for(let x=0;x<w;x++){const i=(y*w+x)*4;row.push(d[i+3]<30?BC.find(c=>c.id===1001):nearest(d[i],d[i+1],d[i+2]));}grid.push(row);}
+  showResults();
+}
+
+function showResults(){
+  const used=new Set();grid.forEach(r=>r.forEach(c=>used.add(c.id)));
+  const s=Math.min(12,Math.floor(400/Math.max(gW,gH))),pw=gW*s,ph=gH*s;
+
+  if(img){
+    const sc=$('sc');sc.width=gW;sc.height=gH;
+    const sC=sc.getContext('2d');sC.imageSmoothingEnabled=true;sC.imageSmoothingQuality='medium';
+    sC.drawImage(img,0,0,gW,gH);
+    const pcan=$('pcan');pcan.width=pw;pcan.height=ph;
+    const pC=pcan.getContext('2d');pC.imageSmoothingEnabled=false;pC.drawImage(sc,0,0,pw,ph);
+  } else {
+    const pcan=$('pcan');pcan.width=pw;pcan.height=ph;const pC=pcan.getContext('2d');
+    for(let y=0;y<gH;y++)for(let x=0;x<gW;x++){pC.fillStyle=rgbStr(grid[y][x]);pC.fillRect(x*s,y*s,s,s);}
+  }
+
+  const rcan=$('rcan');rcan.width=pw;rcan.height=ph;const rC=rcan.getContext('2d');
+  for(let y=0;y<gH;y++)for(let x=0;x<gW;x++){rC.fillStyle=rgbStr(grid[y][x]);rC.fillRect(x*s,y*s,s,s);}
+  if(s>=4){rC.strokeStyle='rgba(0,0,0,.12)';rC.lineWidth=.5;for(let x=0;x<=gW;x++){rC.beginPath();rC.moveTo(x*s,0);rC.lineTo(x*s,ph);rC.stroke();}for(let y=0;y<=gH;y++){rC.beginPath();rC.moveTo(0,y*s);rC.lineTo(pw,y*s);rC.stroke();}}
+
+  $('pg').innerHTML='';
+  BC.filter(c=>used.has(c.id)).forEach(bc=>{const ch=document.createElement('div');ch.className='pchip';ch.style.background=rgbStr(bc);ch.title=`${bc.n} — ${gpos(bc)}`;ch.onmouseenter=e=>showTip(e,bc);ch.onmouseleave=hideTip;$('pg').appendChild(ch);});
+
+  $('res').classList.add('vis');
+  curLayer=0;splitCount=1;activeSection=0;
+  $('split-count').value='1';
+  $('gp-tot').textContent=gH;$('guide').classList.add('vis');
+  buildPickerRef();buildSectionBtns();renderGuide();
+  $('res').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── Picker Grid ──────────────────────────────────────────────────────
+function buildPickerRef(){
+  const g=$('picker-grid');g.innerHTML='';
+  const cols=$('picker-cols');cols.innerHTML='';
+  const rows=$('picker-rows');rows.innerHTML='';
+  for(let c=1;c<=6;c++){const l=document.createElement('div');l.className='picker-clabel';l.textContent=`C${c}`;cols.appendChild(l);}
+  for(let r=1;r<=9;r++){const l=document.createElement('div');l.className='picker-rlabel';l.textContent=`R${r}`;rows.appendChild(l);}
+  for(let r=1;r<=9;r++)for(let c=1;c<=6;c++){
+    let bc=BC.find(x=>x.gr===r&&x.gc===c);
+    if(!bc&&r===9&&c===6)bc=BC.find(x=>x.id===1001);
+    const cell=document.createElement('div');cell.className='picker-cell';
+    if(bc){cell.style.background=rgbStr(bc);cell.title=`${bc.n} — R${r} C${c}`;cell.dataset.id=bc.id;}
+    else{cell.classList.add('na');cell.textContent='N/A';}
+    g.appendChild(cell);
+  }
+}
+function highlightPicker(usedIds){
+  for(const cell of $('picker-grid').children)
+    cell.classList.toggle('active',!!cell.dataset.id&&usedIds.has(Number(cell.dataset.id)));
+}
+
+// ── Split controls ───────────────────────────────────────────────────
+$('split-count').onchange=()=>{
+  splitCount=parseInt($('split-count').value);
+  activeSection=0;
+  buildSectionBtns();
+  renderGuide();
+};
+
+function buildSectionBtns(){
+  const wrap=$('section-btns');wrap.innerHTML='';
+  const info=$('split-info');
+
+  if(splitCount===1){
+    info.textContent='Building the full row yourself.';
+    return;
+  }
+
+  for(let i=0;i<splitCount;i++){
+    const btn=document.createElement('button');
+    btn.className='sec-btn'+(i===activeSection?' active':'');
+    const range=getSectionRange(i,splitCount,gW);
+    btn.textContent=`P${i+1}`;
+    btn.title=`Player ${i+1}: cols ${range.start+1}–${range.start+range.len}`;
+    btn.onclick=()=>{activeSection=i;buildSectionBtns();renderGuide();};
+    wrap.appendChild(btn);
+  }
+
+  const range=getSectionRange(activeSection,splitCount,gW);
+  info.textContent=`Player ${activeSection+1}: cols ${range.start+1}–${range.start+range.len} (${range.len} blocks wide). Each player builds their section on every layer.`;
+}
+
+// ── Build Guide Render ───────────────────────────────────────────────
+function renderGuide(){
+  const layer=curLayer,rowIdx=gH-1-layer,row=grid[rowIdx];
+  $('gp-cur').textContent=layer+1;$('nav-num').textContent=layer+1;
+  $('nav-first').disabled=layer===0;$('nav-prev').disabled=layer===0;
+  $('nav-next').disabled=layer===gH-1;$('nav-last').disabled=layer===gH-1;
+
+  // Section range
+  let secStart=0,secLen=gW;
+  if(splitCount>1){
+    const range=getSectionRange(activeSection,splitCount,gW);
+    secStart=range.start;secLen=range.len;
+  }
+  const secEnd=secStart+secLen;
+
+  // Overview
+  const gcan=$('gcan'),s=Math.min(10,Math.floor(360/Math.max(gW,gH))),pw=gW*s,ph=gH*s;
+  gcan.width=pw;gcan.height=ph;const ctx=gcan.getContext('2d');
+  for(let y=0;y<gH;y++){
+    const ir=gH-1-y;
+    for(let x=0;x<gW;x++){
+      ctx.fillStyle=rgbStr(grid[ir][x]);ctx.fillRect(x*s,(gH-1-ir)*s,s,s);
+      if(y>layer){ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(x*s,(gH-1-ir)*s,s,s);}
+      else if(y<layer){ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(x*s,(gH-1-ir)*s,s,s);}
+      // Dim columns outside active section
+      if(y===layer&&splitCount>1&&(x<secStart||x>=secEnd)){
+        ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillRect(x*s,(gH-1-ir)*s,s,s);
+      }
+    }
+  }
+  ctx.strokeStyle='#e94560';ctx.lineWidth=2;ctx.strokeRect(0,(gH-1-rowIdx)*s,pw,s);
+  // Section divider lines
+  if(splitCount>1){
+    ctx.strokeStyle='rgba(255,255,0,.4)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    for(let i=1;i<splitCount;i++){
+      const range=getSectionRange(i,splitCount,gW);
+      ctx.beginPath();ctx.moveTo(range.start*s,0);ctx.lineTo(range.start*s,ph);ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    // Highlight active section border
+    ctx.strokeStyle='rgba(255,255,0,.7)';ctx.lineWidth=1.5;
+    ctx.strokeRect(secStart*s,(gH-1-rowIdx)*s,secLen*s,s);
+  }
+  if(s>=4){ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=.5;for(let x=0;x<=gW;x++){ctx.beginPath();ctx.moveTo(x*s,0);ctx.lineTo(x*s,ph);ctx.stroke();}for(let y=0;y<=gH;y++){ctx.beginPath();ctx.moveTo(0,y*s);ctx.lineTo(pw,y*s);ctx.stroke();}}
+
+  // Steps for active section
+  const sectionCells=row.slice(secStart,secEnd);
+  const runs=getRuns(sectionCells);
+  const list=$('steps-list');list.innerHTML='';
+
+  let title=`Layer ${layer+1}`;
+  if(splitCount>1) title+=` — Player ${activeSection+1} (cols ${secStart+1}–${secEnd})`;
+  title+=` — ${runs.length} step${runs.length===1?'':'s'}, ${secLen} blocks`;
+  $('steps-title').textContent=title;
+
+  runs.forEach((run,i)=>{
+    const step=document.createElement('div');step.className='step';
+    const num=document.createElement('div');num.className='step-num';num.textContent=`${i+1}.`;
+    const sw=document.createElement('div');sw.className='step-swatch';sw.style.background=rgbStr(run.bc);
+    const info=document.createElement('div');info.className='step-info';
+    const pos=document.createElement('div');pos.className='step-pos';pos.textContent=gpos(run.bc);
+    const name=document.createElement('div');name.className='step-name';name.textContent=run.bc.n;
+    info.append(pos,name);
+    const count=document.createElement('div');count.className='step-count';
+    count.innerHTML=`${run.count} <span>block${run.count===1?'':'s'}</span>`;
+    step.append(num,sw,info,count);list.appendChild(step);
+  });
+
+  highlightPicker(new Set(sectionCells.map(bc=>bc.id)));
+}
+
+// ── Nav ──────────────────────────────────────────────────────────────
+$('nav-prev').onclick=()=>{if(curLayer>0){curLayer--;renderGuide();}};
+$('nav-next').onclick=()=>{if(curLayer<gH-1){curLayer++;renderGuide();}};
+$('nav-first').onclick=()=>{curLayer=0;renderGuide();};
+$('nav-last').onclick=()=>{curLayer=gH-1;renderGuide();};
+document.addEventListener('keydown',e=>{
+  if(!$('guide').classList.contains('vis'))return;
+  if(e.key==='ArrowLeft'||e.key==='ArrowDown'){e.preventDefault();if(curLayer>0){curLayer--;renderGuide();}}
+  if(e.key==='ArrowRight'||e.key==='ArrowUp'){e.preventDefault();if(curLayer<gH-1){curLayer++;renderGuide();}}
+  if(e.key==='Home'){e.preventDefault();curLayer=0;renderGuide();}
+  if(e.key==='End'){e.preventDefault();curLayer=gH-1;renderGuide();}
+});
+let touchX=0;
+$('guide').addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;},{passive:true});
+$('guide').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-touchX;if(Math.abs(dx)>40){if(dx<0&&curLayer<gH-1){curLayer++;renderGuide();}else if(dx>0&&curLayer>0){curLayer--;renderGuide();}}},{passive:true});
+
+// ── Tooltip ──────────────────────────────────────────────────────────
+$('rcan').onmousemove=e=>{const r=$('rcan').getBoundingClientRect();const x=Math.floor((e.clientX-r.left)/(r.width/gW));const y=Math.floor((e.clientY-r.top)/(r.height/gH));if(x>=0&&x<gW&&y>=0&&y<gH){const bc=grid[y][x];showTip(e,bc,`${gpos(bc)} — pixel (${x+1},${y+1})`);}};
+$('rcan').onmouseleave=hideTip;
+function showTip(e,bc,ext){$('ts').style.background=rgbStr(bc);$('tn').textContent=`${bc.n} — ${gpos(bc)}`;$('td').textContent=ext||gpos(bc);$('tt').style.display='block';$('tt').style.left=Math.min(e.clientX+12,innerWidth-180)+'px';$('tt').style.top=Math.min(e.clientY-46,innerHeight-70)+'px';}
+function hideTip(){$('tt').style.display='none';}
+
+// ── Share Link ───────────────────────────────────────────────────────
+function encodeGrid(){
+  let rle=[];let prev=-1,count=0;
+  for(let y=0;y<gH;y++)for(let x=0;x<gW;x++){
+    const idx=bcIndex.indexOf(grid[y][x].id);
+    if(idx===prev){count++;}else{if(prev>=0)rle.push(prev+':'+count);prev=idx;count=1;}
+  }
+  if(prev>=0)rle.push(prev+':'+count);
+  return`${gW},${gH},${rle.join(',')}`;
+}
+function decodeGrid(str){
+  try{
+    const parts=str.split(',');
+    const w=parseInt(parts[0]),h=parseInt(parts[1]);
+    if(isNaN(w)||isNaN(h)||w<1||h<1||w>128||h>128)return null;
+    const pixels=[];
+    for(let i=2;i<parts.length;i++){
+      const pair=parts[i].split(':');
+      const idx=parseInt(pair[0]),cnt=parseInt(pair[1]);
+      if(isNaN(idx)||isNaN(cnt)||idx<0||idx>=BC.length)return null;
+      for(let j=0;j<cnt;j++)pixels.push(BC[idx]);
+    }
+    if(pixels.length!==w*h)return null;
+    const g=[];
+    for(let y=0;y<h;y++)g.push(pixels.slice(y*w,(y+1)*w));
+    return{w,h,grid:g};
+  }catch(e){return null;}
+}
+
+$('share-btn').onclick=()=>{
+  const encoded=encodeGrid();
+  const url=location.origin+location.pathname+'#d='+encoded;
+  $('share-url').value=url;
+  $('share-banner').classList.add('vis');
+  $('share-banner').scrollIntoView({behavior:'smooth'});
+};
+$('share-copy').onclick=()=>{
+  $('share-url').select();navigator.clipboard.writeText($('share-url').value);
+  $('share-copy').textContent='Copied!';setTimeout(()=>$('share-copy').textContent='Copy',1500);
+};
+
+// ── Exports ──────────────────────────────────────────────────────────
+$('egb').onclick=()=>{
+  let s=`Build Guide — ${gW}×${gH} (${gH} layers, bottom to top)\nPositions = in-game color picker (Row, Col)\n\n`;
+  for(let layer=0;layer<gH;layer++){
+    const rowIdx=gH-1-layer;const runs=getRuns(grid[rowIdx]);
+    s+=`=== Layer ${layer+1} ===\n`;
+    runs.forEach((run,i)=>{s+=`  ${i+1}. ${gpos(run.bc)} (${run.bc.n}) × ${run.count}\n`;});
+    s+='\n';
+  }
+  showMo('Full Build Guide',s);
+};
+$('dlb').onclick=()=>{const cv=document.createElement('canvas');cv.width=gW;cv.height=gH;const cx=cv.getContext('2d');for(let y=0;y<gH;y++)for(let x=0;x<gW;x++){cx.fillStyle=rgbStr(grid[y][x]);cx.fillRect(x,y,1,1);}const a=document.createElement('a');a.download=`skybuilding_${gW}x${gH}.png`;a.href=cv.toDataURL();a.click();};
+function showMo(t,txt){$('mt').textContent=t;$('mx').value=txt;$('mo').classList.add('vis');}
+$('mcl').onclick=()=>$('mo').classList.remove('vis');
+$('mc').onclick=()=>{$('mx').select();navigator.clipboard.writeText($('mx').value);$('mc').textContent='Copied!';setTimeout(()=>$('mc').textContent='Copy',1500);};
+$('mo').onclick=e=>{if(e.target===$('mo'))$('mo').classList.remove('vis');};
+
+// ── Load from shared URL ─────────────────────────────────────────────
+(function checkHash(){
+  const hash=location.hash;
+  if(!hash.startsWith('#d='))return;
+  const result=decodeGrid(hash.slice(3));
+  if(!result)return;
+  gW=result.w;gH=result.h;grid=result.grid;img=null;
+  $('uz').style.display='none';$('ctrl').style.display='none';
+  $('loaded-banner').textContent=`Shared build loaded — ${gW}×${gH} pixel art (${gH} layers)`;
+  $('loaded-banner').classList.add('vis');
+  showResults();
+})();
+</script>
+</body>
+</html>
