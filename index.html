@@ -80,16 +80,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 /* Steps */
 .guide-steps{padding:16px;border-bottom:1px solid #233554}
 .guide-steps h3{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:#8892b0;margin-bottom:12px;font-weight:600}
-.steps-list{display:flex;flex-direction:column;gap:4px}
-.step{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:6px;background:rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.04);transition:.15s}
-.step:hover{background:rgba(0,0,0,.25);border-color:rgba(255,255,255,.1)}
-.step-num{font-size:11px;color:#556;min-width:18px;font-variant-numeric:tabular-nums}
-.step-swatch{width:26px;height:26px;border-radius:4px;border:1px solid rgba(255,255,255,.15);flex-shrink:0}
-.step-info{min-width:0}
-.step-pos{font-size:13px;font-weight:700;color:#ff6b6b;display:inline}
-.step-name{font-size:10px;color:#8892b0;display:inline;margin-left:4px}
-.step-count{font-size:14px;font-weight:700;color:#eee;font-variant-numeric:tabular-nums;margin-left:2px;display:inline}
-.step-count span{font-size:11px;color:#8892b0;font-weight:400}
+.steps-list{display:flex;flex-wrap:wrap;gap:6px}
+.step-tile{display:flex;flex-direction:column;align-items:center;width:64px;padding:6px 4px;border-radius:8px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.06);text-align:center;transition:.15s;cursor:default}
+.step-tile:hover{background:rgba(233,69,96,.1);border-color:rgba(233,69,96,.3)}
+.step-tile-swatch{width:44px;height:44px;border-radius:5px;border:1px solid rgba(255,255,255,.15);margin-bottom:4px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;font-variant-numeric:tabular-nums;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.step-tile-pos{font-size:12px;font-weight:800;color:#ff6b6b;line-height:1}
+.step-tile-num{font-size:8px;color:#556;font-weight:600;margin-top:2px}
+.step-tile-arrow{display:flex;align-items:center;color:#333;font-size:16px;margin:0 -2px;align-self:center}
+
+@media(max-width:400px){
+  .step-tile{width:56px;padding:5px 3px}
+  .step-tile-swatch{width:38px;height:38px;font-size:15px}
+  .step-tile-pos{font-size:11px}
+}
 
 /* Picker */
 .picker-ref{padding:14px 18px;border-top:1px solid #233554;background:rgba(0,0,0,.05)}
@@ -493,12 +496,18 @@ function renderGuide(){
   $('steps-title').textContent=title;
 
   runs.forEach((run,i)=>{
-    const step=document.createElement('div');step.className='step';
-    const num=document.createElement('div');num.className='step-num';num.textContent=`${i+1}.`;
-    const sw=document.createElement('div');sw.className='step-swatch';sw.style.background=rgbStr(run.bc);
-    const info=document.createElement('div');info.className='step-info';
-    info.innerHTML=`<span class="step-pos">${gpos(run.bc)}</span><span class="step-name">${run.bc.n}</span> <span class="step-count">× ${run.count}</span>`;
-    step.append(num,sw,info);list.appendChild(step);
+    if(i>0){const arrow=document.createElement('div');arrow.className='step-tile-arrow';arrow.textContent='→';list.appendChild(arrow);}
+    const tile=document.createElement('div');tile.className='step-tile';
+    // Contrast color: use luminance to decide black or white text
+    const [r,g,b]=run.bc.rgb;
+    const lum=(r*0.299+g*0.587+b*0.114)/255;
+    const textCol=lum>0.5?'#000':'#fff';
+    const sw=document.createElement('div');sw.className='step-tile-swatch';
+    sw.style.background=rgbStr(run.bc);sw.style.color=textCol;
+    sw.textContent=`×${run.count}`;
+    const pos=document.createElement('div');pos.className='step-tile-pos';pos.textContent=gpos(run.bc);
+    const num=document.createElement('div');num.className='step-tile-num';num.textContent=`step ${i+1}`;
+    tile.append(sw,pos,num);list.appendChild(tile);
   });
 
   highlightPicker(new Set(sectionCells.map(bc=>bc.id)));
